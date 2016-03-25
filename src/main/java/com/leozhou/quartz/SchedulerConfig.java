@@ -35,6 +35,7 @@ public class SchedulerConfig {
     @Autowired
     CustomDataSourceProperties properties;
 
+    //配置可自动注入来自spring 上下文的对象
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {
         AutowiringSpringBeanJobFactory autowiringSpringBeanJobFactory = new AutowiringSpringBeanJobFactory();
@@ -42,7 +43,7 @@ public class SchedulerConfig {
         return autowiringSpringBeanJobFactory;
     }
 
-    //
+    //根据调度参数和可执行的工作进行执行
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory,
             @Qualifier("sampleJobTrigger") Trigger sampleJobTrigger) throws IOException {
@@ -67,19 +68,13 @@ public class SchedulerConfig {
         return propertiesFactoryBean.getObject();
     }
 
-    //
+    //注入定时任务Detail
     @Bean
     public JobDetailFactoryBean sampleJobDetail() {
         return createJobDetail(SampleJob.class);
     }
 
-    @Bean(name = "sampleJobTrigger")
-    public SimpleTriggerFactoryBean sampleJobTrigger(@Qualifier("sampleJobDetail") JobDetail jobDetail,
-            @Value("${samplejob.frequency}") long frequency) {
-
-        return createTrigger(jobDetail, frequency);
-    }
-
+    //抽象出创建JobDetail的方法
     private static JobDetailFactoryBean createJobDetail(Class jobClass) {
         JobDetailFactoryBean factoryBean = new JobDetailFactoryBean();
         factoryBean.setJobClass(jobClass);
@@ -88,6 +83,15 @@ public class SchedulerConfig {
         return factoryBean;
     }
 
+    //注入调度参数
+    @Bean(name = "sampleJobTrigger")
+    public SimpleTriggerFactoryBean sampleJobTrigger(@Qualifier("sampleJobDetail") JobDetail jobDetail,
+            @Value("${samplejob.frequency}") long frequency) {
+
+        return createTrigger(jobDetail, frequency);
+    }
+
+    //抽象出创建单个调度参数的方法
     private static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
         SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
         factoryBean.setJobDetail(jobDetail);
@@ -98,6 +102,7 @@ public class SchedulerConfig {
         return factoryBean;
     }
 
+    //配置类按揭数据库的dataSource
     @Bean
     public DataSource getDataSource() throws SQLException {
         DataSource dataSource = new DataSource();
