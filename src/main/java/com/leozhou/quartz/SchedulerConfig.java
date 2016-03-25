@@ -2,6 +2,7 @@ package com.leozhou.quartz;
 
 import com.leozhou.quartz.mybatis.conf.CustomDataSourceProperties;
 import com.leozhou.quartz.task.SampleJob;
+import com.leozhou.quartz.task.config.AutowiringSpringBeanJobFactory;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -19,7 +20,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -37,10 +37,12 @@ public class SchedulerConfig {
 
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {
-        SpringBeanJobFactory jobFactory = new SpringBeanJobFactory();
-        return jobFactory;
+        AutowiringSpringBeanJobFactory autowiringSpringBeanJobFactory = new AutowiringSpringBeanJobFactory();
+        autowiringSpringBeanJobFactory.setApplicationContext(applicationContext);
+        return autowiringSpringBeanJobFactory;
     }
 
+    //
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory,
             @Qualifier("sampleJobTrigger") Trigger sampleJobTrigger) throws IOException {
@@ -56,6 +58,7 @@ public class SchedulerConfig {
         return factoryBean;
     }
 
+    //引入定时任务配置文件
     @Bean
     public Properties quartzProperties() throws IOException {
         PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
@@ -64,6 +67,7 @@ public class SchedulerConfig {
         return propertiesFactoryBean.getObject();
     }
 
+    //
     @Bean
     public JobDetailFactoryBean sampleJobDetail() {
         return createJobDetail(SampleJob.class);
@@ -72,6 +76,7 @@ public class SchedulerConfig {
     @Bean(name = "sampleJobTrigger")
     public SimpleTriggerFactoryBean sampleJobTrigger(@Qualifier("sampleJobDetail") JobDetail jobDetail,
             @Value("${samplejob.frequency}") long frequency) {
+
         return createTrigger(jobDetail, frequency);
     }
 
