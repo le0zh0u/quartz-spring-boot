@@ -1,4 +1,4 @@
-package com.leozhou.quartz.task;
+package com.leozhou.quartz.task.jobs;
 
 import com.leozhou.quartz.service.QuartzService;
 import org.quartz.Job;

@@ -1,8 +1,7 @@
-package com.leozhou.quartz;
+package com.leozhou.quartz.task.config;
 
 import com.leozhou.quartz.mybatis.conf.CustomDataSourceProperties;
-import com.leozhou.quartz.task.SampleJob;
-import com.leozhou.quartz.task.config.AutowiringSpringBeanJobFactory;
+import com.leozhou.quartz.task.jobs.SampleJob;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -17,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
@@ -46,7 +46,7 @@ public class SchedulerConfig {
     //根据调度参数和可执行的工作进行执行
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory,
-            @Qualifier("sampleJobTrigger") Trigger sampleJobTrigger) throws IOException {
+            @Qualifier("sampleJobTrigger") Trigger sampleJobTrigger,@Qualifier("customJobTrigger") Trigger CustomJobTrigger) throws IOException {
         SchedulerFactoryBean factoryBean = new SchedulerFactoryBean();
         // this allows to update triggers in DB when updating settings in config file:
         factoryBean.setOverwriteExistingJobs(true);
@@ -54,7 +54,7 @@ public class SchedulerConfig {
         factoryBean.setJobFactory(jobFactory);
 
         factoryBean.setQuartzProperties(quartzProperties());
-        factoryBean.setTriggers(sampleJobTrigger);
+        factoryBean.setTriggers(sampleJobTrigger,CustomJobTrigger);
 
         return factoryBean;
     }
@@ -87,8 +87,18 @@ public class SchedulerConfig {
     @Bean(name = "sampleJobTrigger")
     public SimpleTriggerFactoryBean sampleJobTrigger(@Qualifier("sampleJobDetail") JobDetail jobDetail,
             @Value("${samplejob.frequency}") long frequency) {
-
         return createTrigger(jobDetail, frequency);
+    }
+
+    @Bean(name = "customJobTrigger")
+    public CronTriggerFactoryBean cronTriggerFactoryBean(@Qualifier("sampleJobDetail") JobDetail jobDetail) {
+        CronTriggerFactoryBean ctFactory = new CronTriggerFactoryBean();
+        ctFactory.setJobDetail(jobDetail);
+        ctFactory.setName("sampleJobRunner");
+        ctFactory.setGroup("sampleGroup");
+        ctFactory.setStartDelay(0l);
+        ctFactory.setCronExpression("0/10 * * * * ?");
+        return ctFactory;
     }
 
     //抽象出创建单个调度参数的方法

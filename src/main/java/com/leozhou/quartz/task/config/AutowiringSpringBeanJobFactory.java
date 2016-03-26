@@ -9,6 +9,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 /**
  * Created by zhouchunjie on 16/3/25.
+ * 设置可从spring上下文自动注入的JobFactory
  */
 public class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory implements ApplicationContextAware {
 
