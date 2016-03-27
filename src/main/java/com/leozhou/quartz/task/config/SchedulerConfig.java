@@ -46,7 +46,7 @@ public class SchedulerConfig {
     //根据调度参数和可执行的工作进行执行
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory,
-            @Qualifier("sampleJobTrigger") Trigger sampleJobTrigger,@Qualifier("customJobTrigger") Trigger CustomJobTrigger) throws IOException {
+            @Qualifier("customJobTrigger") Trigger customJobTrigger) throws IOException {
         SchedulerFactoryBean factoryBean = new SchedulerFactoryBean();
         // this allows to update triggers in DB when updating settings in config file:
         factoryBean.setOverwriteExistingJobs(true);
@@ -54,7 +54,7 @@ public class SchedulerConfig {
         factoryBean.setJobFactory(jobFactory);
 
         factoryBean.setQuartzProperties(quartzProperties());
-        factoryBean.setTriggers(sampleJobTrigger,CustomJobTrigger);
+        factoryBean.setTriggers(customJobTrigger);
 
         return factoryBean;
     }
@@ -82,7 +82,7 @@ public class SchedulerConfig {
         factoryBean.setDurability(true);
         return factoryBean;
     }
-    
+
 
     //注入调度参数
     @Bean(name = "sampleJobTrigger")
