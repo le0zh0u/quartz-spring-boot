@@ -82,6 +82,7 @@ public class SchedulerConfig {
         factoryBean.setDurability(true);
         return factoryBean;
     }
+    
 
     //注入调度参数
     @Bean(name = "sampleJobTrigger")
